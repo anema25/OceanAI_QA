@@ -1,0 +1,3 @@
+- All validation errors must be shown in red and placed directly below the field.
+- The "Pay Now" button should be green and visible when form is filled.
+- Discount success message should be inline near the discount input.
