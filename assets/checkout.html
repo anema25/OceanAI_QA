@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>E-Shop Checkout</title>
+  <style>
+    body{font-family:Arial;max-width:900px;margin:20px auto}
+    .error{color:red}
+    .green-btn{background:green;color:white;padding:10px 16px;border:none;border-radius:6px}
+    .cart{border:1px solid #ddd;padding:12px;margin-bottom:12px}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <h1>E-Shop Checkout</h1>
+
+  <div class="products">
+    <div class="product" data-id="p1" data-price="20">
+      <strong>Widget A</strong> — $20
+      <button class="add-to-cart" data-id="p1">Add to Cart</button>
+    </div>
+    <div class="product" data-id="p2" data-price="35">
+      <strong>Widget B</strong> — $35
+      <button class="add-to-cart" data-id="p2">Add to Cart</button>
+    </div>
+    <div class="product" data-id="p3" data-price="50">
+      <strong>Widget C</strong> — $50
+      <button class="add-to-cart" data-id="p3">Add to Cart</button>
+    </div>
+  </div>
+
+  <h2>Cart Summary</h2>
+  <div id="cart" class="cart">
+    <div id="cart-items"></div>
+    <div>
+      Discount code: <input id="discount" placeholder="Enter code"/>
+      <button id="apply-discount">Apply</button>
+      <div id="discount-msg" class="error"></div>
+    </div>
+    <div>
+      Shipping:
+      <label><input type="radio" name="shipping" value="standard" checked/> Standard (Free)</label>
+      <label><input type="radio" name="shipping" value="express" /> Express ($10)</label>
+    </div>
+    <div>
+      <strong>Total: $<span id="total">0.00</span></strong>
+    </div>
+  </div>
+
+  <h2>User Details</h2>
+  <form id="checkout-form" novalidate>
+    <div>
+      <label>Name: <input id="name" name="name" required/></label>
+      <div id="err-name" class="error"></div>
+    </div>
+    <div>
+      <label>Email: <input id="email" name="email" required/></label>
+      <div id="err-email" class="error"></div>
+    </div>
+    <div>
+      <label>Address: <input id="address" name="address" required/></label>
+      <div id="err-address" class="error"></div>
+    </div>
+    <div>
+      Payment method:
+      <label><input type="radio" name="payment" value="card" checked/> Credit Card</label>
+      <label><input type="radio" name="payment" value="paypal"/> PayPal</label>
+    </div>
+    <button type="button" id="pay-now" class="green-btn">Pay Now</button>
+  </form>
+
+  <div id="payment-success" class="hidden">Payment Successful!</div>
+
+<script>
+const CART = {};
+
+function renderCart(){
+  const container=document.getElementById('cart-items');
+  container.innerHTML='';
+  let total=0;
+  Object.keys(CART).forEach(id=>{
+    const item=CART[id];
+    const row=document.createElement('div');
+    row.innerHTML = `${item.name} - $${item.price} x <input type="number" min="0" value="${item.qty}" data-id="${id}" class="qty"> <button class="remove" data-id="${id}">Remove</button>`;
+    container.appendChild(row);
+    total += item.price * item.qty;
+  });
+  // shipping
+  const shipping = document.querySelector('input[name=shipping]:checked').value;
+  const shippingCost = (shipping==='express')?10:0;
+  // discount
+  const discountApplied = window._discountApplied || 0;
+  const discounted = total * (1 - discountApplied);
+  const finalTotal = discounted + shippingCost;
+  document.getElementById('total').textContent = finalTotal.toFixed(2);
+}
+
+document.querySelectorAll('.add-to-cart').forEach(btn=>{
+  btn.addEventListener('click',()=> {
+    const id=btn.dataset.id;
+    const price = Number(document.querySelector(`.product[data-id="${id}"]`).dataset.price);
+    const name = document.querySelector(`.product[data-id="${id}"] strong`).textContent;
+    if(!CART[id]) CART[id]={name,price,qty:1};
+    else CART[id].qty++;
+    renderCart();
+  });
+});
+
+document.getElementById('cart').addEventListener('click', e=>{
+  if(e.target.classList.contains('remove')){
+    const id=e.target.dataset.id; delete CART[id]; renderCart();
+  }
+});
+document.getElementById('cart').addEventListener('change', e=>{
+  if(e.target.classList.contains('qty')){
+    const id=e.target.dataset.id; CART[id].qty = Number(e.target.value); renderCart();
+  }
+});
+document.getElementById('apply-discount').addEventListener('click', ()=>{
+  const code = document.getElementById('discount').value.trim();
+  const msg = document.getElementById('discount-msg');
+  msg.textContent = '';
+  if(code==='SAVE15'){ window._discountApplied = 0.15; msg.textContent='15% discount applied'; }
+  else if(code===''){ window._discountApplied = 0; msg.textContent=''; }
+  else { window._discountApplied=0; msg.textContent='Invalid code'; }
+  renderCart();
+});
+document.querySelectorAll('input[name=shipping]').forEach(r=>r.addEventListener('change', renderCart));
+
+function validateForm(){
+  let ok=true;
+  const name=document.getElementById('name').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const address=document.getElementById('address').value.trim();
+  document.getElementById('err-name').textContent = name? '' : 'Name is required';
+  document.getElementById('err-address').textContent = address? '' : 'Address required';
+  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  document.getElementById('err-email').textContent = emailRegex.test(email)? '' : 'Invalid email';
+  if(!name||!address||!emailRegex.test(email)) ok=false;
+  return ok;
+}
+document.getElementById('pay-now').addEventListener('click', ()=>{
+  if(validateForm()){
+    document.getElementById('payment-success').classList.remove('hidden');
+  }
+});
+renderCart();
+</script>
+</body>
+</html>
