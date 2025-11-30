@@ -1,0 +1,23 @@
+[
+  {
+    "Test_ID": "TC-001",
+    "Feature": "Discount Code",
+    "Test_Scenario": "Apply valid discount 'SAVE15'.",
+    "Steps": [
+      "Add an item to cart",
+      "Enter discount code SAVE15",
+      "Click Apply",
+      "Verify that total reduced by 15% (before shipping)"
+    ],
+    "Inputs": {"discount_code":"SAVE15"},
+    "Expected_Result": "Total price reduced by 15% as per product_specs.md",
+    "Grounded_In": "product_specs.md"
+  },
+  {
+    "Test_ID": "TC-002",
+    "Feature": "Discount Code",
+    "Test_Scenario": "Apply invalid discount code 'WRONG'.",
+    "Steps":[...],
+    "Expected_Result": "Invalid code message is shown inline"
+  }
+]
